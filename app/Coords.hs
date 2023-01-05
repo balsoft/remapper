@@ -93,13 +93,6 @@ fromListBE = foldr f 0 . reverse
 toListBE :: (FiniteBits b) => b -> [Bool]
 toListBE b = testBit b <$> reverse [0 .. finiteBitSize b - 1]
 
-groupBy :: Int -> [a] -> [[a]]
-groupBy _ [] = []
-groupBy n xs = let (a, xs') = splitAt n xs in a : groupBy n xs'
-
-padL :: Int -> a -> [a] -> [a]
-padL n x xs = xs <> (x <$ [0 .. n])
-
 base64Alphabet :: String
 base64Alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
 
@@ -114,7 +107,6 @@ base64ToBits ch = case toListBE <$> i of
 -- WTF WTF WTF
 -- ge0 is a base64-encoded bytestring of characters c, no longer than 11 characters total:
 -- cccccccccc
-
 -- ^           zoom level
 --  ^^^^^^^^^  latitude and longtitude
 -- For some reason, to get the actual zoom level, you have to do (c / 4) + 4 to the zoom level byte.
