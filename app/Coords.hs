@@ -13,6 +13,7 @@ import Text.Parsec
 import Text.Parsec.Text
 import Text.Printf
 import Data.Maybe (fromMaybe)
+import Data.Functor (($>))
 
 data Coords = Coords {lat :: Float, lon :: Float, zoom :: Maybe Float} deriving (Eq)
 
@@ -35,22 +36,38 @@ parseFloat = read <$> parser
     number = many1 digit
 
 coordMessage :: Parser Coords
-coordMessage = (try coords <|> try geoLink <|> try osmandShare <|> try ge0Part <|> try omLink <|> try omShare <|> try yandexShare) <* eof
+coordMessage = (try coords <|> try coordsDegs <|> try geoLink <|> try osmandShare <|> try omLink <|> try ge0Link <|> try omShare <|> try yandexShare) <* eof
   where
     coords = Coords <$> parseFloat <* char ',' <* many (char ' ') <*> parseFloat <*> pure Nothing
 
-    geoLink = do
+    ifNeg cond deg = if cond then deg else (- deg)
+
+    coordsDegs = do
+      lat' <- parseFloat
+      void $ string "° "
+      north <- (char 'N' $> True) <|> (char 'S' $> False)
+      void $ string ", "
+      lon' <- parseFloat
+      void $ string "° "
+      east <- (char 'E' $> True) <|> (char 'W' $> False)
+      pure Coords { lat = ifNeg north lat', lon = ifNeg east lon', zoom = Nothing }
+
+    geoPart = do
       Coords { lat, lon } <- coords
       void $ string "?z="
       zoom <- Just <$> parseFloat
       void $ many (noneOf " \n\t")
       pure Coords {..}
 
-    osmandShare = manyTill anyChar (try $ string "geo:") *> geoLink <* char '\n' <* many anyChar
+    geoLink = string "geo:" *> geoPart
+
+    osmandShare = manyTill anyChar (try $ string "geo:") *> geoPart <* char '\n' <* many anyChar
 
     ge0Part = ge0 <$> replicateM 10 (oneOf base64Alphabet)
 
     omLink = string "om://" *> ge0Part <* optional (char '/' <* many (oneOf base64Alphabet))
+
+    ge0Link = string "ge0://" *> ge0Part <* optional (char '/' <* many (oneOf base64Alphabet))
 
     omShare = manyTill anyChar (try (string "om://")) *> ge0Part <* many anyChar
 
@@ -64,6 +81,7 @@ coordMessage = (try coords <|> try geoLink <|> try osmandShare <|> try ge0Part <
       zoom <- Just <$> parseFloat
       void $ many anyChar
       pure Coords {..}
+
 
 fromListBE :: [Bool] -> Int
 fromListBE = foldr f 0 . reverse
