@@ -27,7 +27,7 @@ mkMessage coords =
     ]
 
 usage :: Text
-usage = "Try sharing a location from <b>OsmAnd</b>, <b>Organic Maps</b>, <b>Yandex.Maps</b>, or Telegram itself."
+usage = "Try sending coordinates in decimal degrees format, or sharing a location from <b>OsmAnd</b>, <b>Organic Maps</b>, <b>Yandex.Maps</b>, or Telegram itself."
 
 main :: IO ()
 main = do
