@@ -11,7 +11,7 @@ yandexLink :: Coords -> Text
 yandexLink Coords {..} = "https://yandex.com/maps?pt=" <> pack (show lon) <> "," <> pack (show lat) <> "&z=" <> showZoom zoom <> "&l=map"
 
 googleLink :: Coords -> Text
-googleLink coords = "https://www.google.com/maps/search/?api=1&query=" <> renderCoords coords
+googleLink coords@Coords {..} = "https://www.google.com/maps/place/" <> renderCoords coords <> "/@" <> renderCoords coords <> "," <> showZoom zoom <> "z"
 
 osmandLink :: Coords -> Text
 osmandLink Coords {..} = "https://osmand.net/go/?lat=" <> pack (show lat) <> "&lon=" <> pack (show lon) <> "&z=" <> showZoom zoom
